@@ -34,12 +34,12 @@ public class CursorControllerTest : MonoBehaviour
         {
             sphereNormalizer.transform.position = hit.point + hit.normal * sphereNormalizer.transform.localScale.x;
 
-            if (x != (int) hit.point.x || z != (int) hit.point.z) 
+            if (x != (int)(hit.point.x + .5f) || z != (int)(hit.point.z + .5f)) 
             {
-                x = (int) hit.point.x;
-                z = (int)hit.point.z;
+                x = (int) (hit.point.x + .5f);
+                z = (int) (hit.point.z + .5f);
 
-                highlighter.transform.position = new Vector3(x + .5f, .5f, z + .5f);
+                highlighter.transform.position = new Vector3(x, .5f, z);
             }
         }
     }
