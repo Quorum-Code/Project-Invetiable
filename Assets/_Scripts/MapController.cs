@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using TMPro;
 
 public class MapController : MonoBehaviour
 {
@@ -11,8 +12,12 @@ public class MapController : MonoBehaviour
     [SerializeField] GameObject prefabFullCover;
     [SerializeField] GameObject prefabHalfCover;
 
+    [SerializeField] TMP_Text mapDisplay;
+
     Tile[,] tiles;
     Wall[,] walls;
+
+    char[,] map;
 
     [SerializeField] int mapSize = 5;
     float tileSize = 1f;
@@ -21,6 +26,7 @@ public class MapController : MonoBehaviour
     void Start()
     {
         GenerateMap();
+        GenerateMapLayout(55, 3, 5);
     }
 
     // Update is called once per frame
@@ -80,9 +86,136 @@ public class MapController : MonoBehaviour
         Debug.Log(instCounter);
     }
 
+    // Organic map layout generation
+    private void GenerateMapLayout(int seeds, int minWidth, int maxWidth) 
+    {
+        // MAP TILE DEFINITIONS
+        // 'E'          = Required Empty tile
+        // 'e'          = Required Edge tile
+        // '0'          = Default Empty tile
+        // '1' - '9'    = Room tile
+        // 'D'          = Door
+        // 'C'          = FullCover
+        // 'c'          = HalfCover
+
+        map = new char[mapSize, mapSize];
+        int[,] rooms = new int[seeds, 4]; 
+
+        // Default tile description
+        for (int i = 0; i < map.GetLength(0); i++) 
+        {
+            for (int j = 0; j < map.GetLength(1); j++) 
+            {
+                map[i, j] = '0';
+            }
+        }
+
+        /// TODEVELOP -- Would like to seed points and have rooms grow organically,
+        /// selecting random building and edge of to grow until all buildings almost collide
+
+        /*
+        // Seed points
+        for (int i = 0; i < seeds; i++) 
+        {
+            int rY = Random.Range(2, map.GetLength(0) - 2);
+            int rX = Random.Range(2, map.GetLength(0) - 2);
+
+            rooms[i, 0] = 'a';
+            rooms[i, 1] = 'a';
+            rooms[i, 2] = 'a';
+            rooms[i, 3] = 'a';
+
+            map[rY, rX] = '1';
+        }
+        */
+
+        /// TEMP -- Try to generate seeds number of rooms within limits
+        /// until seeds placed or too many iterations
+        int maxIterations = 100;
+        int placedSeeds = 0;
+        for (int i = 0; i < maxIterations && placedSeeds < seeds; i++) 
+        {
+            int desLength = Random.Range(minWidth, maxWidth + 1);
+            int desWidth = Random.Range(minWidth, maxWidth+1);
+
+            int seedY = Random.Range(2, map.GetLength(0) - (2 + desLength));
+            int seedX = Random.Range(2, map.GetLength(1) - (2 + desWidth));
+
+            if (isAreaOpen(map, seedX, seedY, seedX + desWidth, seedY + desLength))
+            {
+                placeBuilding(map, seedX, seedY, seedX + desWidth, seedY + desLength);
+                placedSeeds++;
+            }
+            else 
+            {
+                maxIterations++;
+            }
+        }
+
+
+        // DEBUG DISPLAY MAP LAYOUT
+        DisplayLayout(map);
+    }
+
+    private bool isAreaOpen(char[,] map, int x1, int y1, int x2, int y2) 
+    {
+        return true;
+    }
+
+    private void placeBuilding(char[,] map, int x1, int y1, int x2, int y2) 
+    {
+        for (int i = y1; i < y2; i++) 
+        {
+            for (int j = x1; j < x2; j++) 
+            {
+                map[i, j] = '1';
+            }
+        }
+    }
+
+    private void DisplayLayout(char[,] layout) 
+    {
+        string mapped = "";
+
+        for (int i = 0; i < layout.GetLength(0); i++) 
+        {
+            for (int j = 0; j < layout.GetLength(1); j++) 
+            {
+                mapped += layout[i, j];
+            }
+            mapped += '\n';
+        }
+
+        mapDisplay.text = mapped;
+    }
+
     private void TryGenerateRoom() 
     {
         
+    }
+
+    private void TranslateLayout(char[,] map) 
+    {
+        int maxY = map.GetLength(0);
+        int maxX = map.GetLength(1);   
+
+        for (int i = 0; i < maxY-1; i++) 
+        {
+            for (int j = 0; j < maxX-1; j++) 
+            {
+                // Horizontal/Length iteration
+                if (map[i,j] != map[i,j+1]) 
+                {
+
+                }
+
+                // Vertical/Width iteration
+                if (map[i, j] != map[i+1, j]) 
+                {
+
+                }
+            }
+        }
     }
 
     /// <summary>
