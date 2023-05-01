@@ -6,6 +6,8 @@ using TMPro;
 
 public class MapController : MonoBehaviour
 {
+    LayoutGenerator lg;
+
     [SerializeField] GameObject prefabFullWall;
     [SerializeField] GameObject prefabHalfWall;
 
@@ -13,6 +15,10 @@ public class MapController : MonoBehaviour
     [SerializeField] GameObject prefabHalfCover;
 
     [SerializeField] TMP_Text mapDisplay;
+
+    [SerializeField] GameObject plotParent;
+    [SerializeField] GameObject mapPlot;
+    [SerializeField] float mapPlotSize;
 
     Tile[,] tiles;
     Wall[,] walls;
@@ -25,14 +31,82 @@ public class MapController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GenerateMap();
-        GenerateMapLayout(55, 3, 5);
+        GenerateLayout();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void GenerateLayout() 
     {
-        
+        lg = new LayoutGenerator();
+        char[,] layout = lg.GenerateLayout(30, 10);
+
+        VisualizeMap(layout);
+    }
+
+    private void OrganicLayoutGen() 
+    {
+        char[,] layout = new char[30,30];
+        int seedOffset = 6;
+
+        // Seed edges of layout
+        int topX    = Random.Range(0 + seedOffset, layout.GetLength(0) - (seedOffset + 1));
+        int rightY  = Random.Range(0 + seedOffset, layout.GetLength(1) - (seedOffset + 1));
+        int botX    = Random.Range(0 + seedOffset, layout.GetLength(0) - (seedOffset + 1));
+        int leftY   = Random.Range(0 + seedOffset, layout.GetLength(1) - (seedOffset + 1));
+
+        FillToFrom(layout, '1', layout.GetLength(0)-1, topX, layout.GetLength(0) - (1 + 3), topX);
+        FillToFrom(layout, '1', rightY, layout.GetLength(1) - 1, rightY, layout.GetLength(1) - (1 + 3));
+        FillToFrom(layout, '1', 0, botX, 3, botX);
+        FillToFrom(layout, '1', leftY, 0, leftY, 3);
+
+        // Expand edges
+
+
+        VisualizeMap(layout);
+    }
+
+    private void FillToFrom(char[,] layout, char fill, int y1, int x1, int y2, int x2) 
+    {
+        int fillCount = 0;
+
+        // Swap around if necessary
+        if (x2 < x1)
+        {
+            int xt = x2;
+            x2 = x1;
+            x1 = xt;
+        }
+        // Swap around if necessary
+        if (y2 < y1)
+        {
+            int yt = y2;
+            y2 = y1;
+            y1 = yt;
+        }
+        // Fill to from with char fill
+        for (int i = y1; i <= y2; i++) 
+        {
+            for (int j = x1; j <= x2; j++) 
+            {
+                layout[i, j] = fill;
+                fillCount++;
+            }
+        }
+
+        Debug.Log(fillCount);
+    }
+
+    private void VisualizeMap(char[,] layout) 
+    {
+        for (int i = 0; i < layout.GetLength(0); i++) 
+        {
+            for (int j = 0; j < layout.GetLength(1); j++) 
+            {
+                if (layout[i,j] == '1') 
+                {
+                    GameObject t = Instantiate(mapPlot, new Vector3(j * mapPlotSize + 1, 0, i * mapPlotSize + 1), new Quaternion(), plotParent.transform);
+                }
+            }
+        }
     }
 
     private void GenerateMap() 
@@ -154,9 +228,9 @@ public class MapController : MonoBehaviour
 
 
         // DEBUG DISPLAY MAP LAYOUT
-        DisplayLayout(map);
+        // DisplayLayout(map);
     }
-
+    
     private bool isAreaOpen(char[,] map, int x1, int y1, int x2, int y2) 
     {
         return true;
@@ -311,9 +385,6 @@ public class MapController : MonoBehaviour
         }
 
         // Check if b isWalkable
-
-
-
 
         return true;
     }
